@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Dijital BULUT · Sayı 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{--tq:#00adb9;--navy:#14264a;--yel:#ffd23f;--bg:#0f1d3a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Nunito,system-ui,sans-serif;background:radial-gradient(ellipse at 50% 0%,#1d3566 0%,var(--bg) 70%);color:#fff;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:var(--tq)}
+.logo{font-family:Anton,sans-serif;font-size:30px;letter-spacing:2px;line-height:1;color:#fff}
+.logo small{font-family:Nunito;font-weight:800;font-size:12px;letter-spacing:0;display:block;opacity:.9;margin-top:2px}
+.issue{text-align:right;font-weight:800;font-size:12px;line-height:1.3}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 10px 8px;width:100%}
+#book-wrap{width:100%;max-width:1100px}
+#book{margin:0 auto}
+.page{background:#fff;overflow:hidden}
+.page img{width:100%;height:100%;display:block;object-fit:cover;user-select:none;-webkit-user-drag:none}
+.xbtn{display:flex;align-items:center;gap:6px;background:var(--yel);color:var(--navy);border:none;border-radius:30px;padding:8px 14px 8px 10px;font-family:Nunito;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25);animation:pulse 2.2s infinite;z-index:5}
+.xbtn svg{flex:none}
+#xs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:44px;margin:-4px 0 12px}
+#xs .xbtn{position:static}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+nav{display:flex;align-items:center;gap:14px;padding:12px 0 18px}
+nav button{width:46px;height:46px;border-radius:50%;border:none;background:#fff;color:var(--navy);font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+nav button:disabled{opacity:.35;cursor:default}
+#pno{min-width:110px;text-align:center;font-weight:900;font-size:15px}
+.hint{font-size:12px;opacity:.7;font-weight:700;margin-top:-6px;padding-bottom:14px;text-align:center}
+#modal{position:fixed;inset:0;background:rgba(5,12,30,.72);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+#modal.on{display:flex}
+.card{width:100%;max-width:520px;background:#fff;color:var(--navy);border-radius:18px;padding:22px 22px 18px;position:relative;max-height:90vh;overflow:auto}
+.card h2{font-family:Anton;font-size:30px;letter-spacing:.5px;line-height:1.05}
+.card .kg{font-weight:800;font-size:13px;color:var(--tq);margin-top:2px}
+.card p{font-weight:700;font-size:15px;line-height:1.5;margin-top:12px}
+.soon{display:inline-block;margin-top:14px;background:var(--yel);border-radius:14px;padding:4px 12px;font-weight:900;font-size:13px}
+.x{position:absolute;right:12px;top:10px;width:36px;height:36px;border-radius:50%;border:none;background:#eef3f8;color:var(--navy);font-size:20px;font-weight:900;cursor:pointer}
+footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12px 14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">BULUT<small>Dijital BULUT · Санариптик BULUT</small></div>
+  <div class="issue">Sayı 1 · Kasım 2026<br>Cengiz Aytmatov Lisesi</div>
+</header>
+<main>
+  <div id="book-wrap"><div id="book"></div></div>
+  <nav>
+    <button id="prev" aria-label="Önceki sayfa">‹</button>
+    <div id="pno">1 / 20</div>
+    <button id="next" aria-label="Sonraki sayfa">›</button>
+  </nav>
+  <div id="xs"></div>
+  <div class="hint">Sayfanın köşesinden tutup çevir ya da okları kullan.</div>
+</main>
+<footer>BULUT · Cengiz Aytmatov Lisesi Gazete ve Dergi Kulübü</footer>
+
+<div id="modal" role="dialog" aria-modal="true"><div class="card">
+  <button class="x" aria-label="Kapat">×</button>
+  <h2 id="m-t"></h2><div class="kg" id="m-k"></div>
+  <p id="m-p"></p><span class="soon">Yakında! · Жакында!</span>
+</div></div>
+
+<script src="lib/page-flip.browser.js"></script>
+<script>
+const N = 20;
+// Sayfa ekstraları: sayfa no → [buton yazısı, başlık, kırgızca, açıklama]
+const EXTRA = {
+  4:  ['Dinle', "Aytmatov'un İzinde", 'Угуп көр', 'Hikâyeyi sesli dinle.'],
+  5:  ['Dinle', 'Kulağa Tanıdık Geliyor!', 'Угуп көр', 'Kelimeye dokun, Türkçesini dinle.'],
+  8:  ['İzle ve seç', 'O mu, bu mu?', 'Көр жана танда', 'Röportaj videosunu izle. Sonra sen de seç: arkadaşların ne seçmiş, gör!'],
+  9:  ['Yaz', 'Söz Sende!', 'Сөз сенде!', 'Balonlara sen yaz, bize gönder.'],
+  12: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!'],
+  15: ['Galeri', 'Bulutta Bir Hayvan', 'Булуттагы жаныбар', 'Arkadaşlarının bulut fotoğrafları burada.'],
+  17: ['Videolar', 'Dağların Hayaleti', 'Тоолордун арбагы', 'Kar leoparı, Anadolu parsı, kangal ve caretta videoları.'],
+  18: ['Keşfet', 'Bulut Yolda', 'Булут жолдо', 'Haritada Bulut ile Kar\'ın yolunu izle. Yeni rotayı sen seç!'],
+  19: ['Oyna', 'Bilgi Yağmuru', 'Маалымат жамгыры', 'Şaka olan damlayı bul!'],
+  20: ['Katıl', 'BULUT Avı', 'BULUT аңчылыгы', 'Gizli sözü yaz, çekilişe katıl. Rotaya oy ver, fotoğrafını gönder!'],
+};
+const ICON = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.5 20 12 16.6 6.5 20 8 13.4 3 9l6.4-.6z" fill="currentColor"/></svg>';
+const book = document.getElementById('book');
+for (let i = 1; i <= N; i++) {
+  const d = document.createElement('div');
+  d.className = 'page' + (i % 2 === 0 ? ' even' : '');
+  if (i === 1 || i === N) d.dataset.density = 'hard';
+  d.innerHTML = `<img src="sayfalar/s${String(i).padStart(2,'0')}.jpg" alt="BULUT sayfa ${i}" loading="${i < 4 ? 'eager' : 'lazy'}">`;
+  book.appendChild(d);
+}
+// kitabı ekran yüksekliğine sığdır
+(function fit(){ const avail = window.innerHeight - 240; const land = window.innerWidth > 700;
+  const w = land ? 2 * avail / 1.4143 : avail / 1.4143;
+  document.getElementById('book-wrap').style.maxWidth = Math.max(300, Math.min(1100, w)) + 'px'; })();
+const pf = new St.PageFlip(book, {
+  width: 560, height: 792, size: 'stretch', minWidth: 280, maxWidth: 1000, minHeight: 396, maxHeight: 1414,
+  showCover: true, maxShadowOpacity: .45, mobileScrollSupport: true, flippingTime: 700, usePortrait: true
+});
+pf.loadFromHTML(document.querySelectorAll('#book .page'));
+const pno = document.getElementById('pno'), prev = document.getElementById('prev'), next = document.getElementById('next');
+function upd() {
+  const i = pf.getCurrentPageIndex();
+  const orient = pf.getOrientation();
+  pno.textContent = (orient === 'landscape' && i > 0 && i < N - 1) ? `${i + 1}–${Math.min(i + 2, N)} / ${N}` : `${i + 1} / ${N}`;
+  prev.disabled = i === 0; next.disabled = i >= N - 1;
+  history.replaceState(null, '', '#s' + (i + 1));
+  const vis = (orient === 'landscape' && i > 0 && i < N - 1) ? [i + 1, i + 2] : [i + 1];
+  const xs = document.getElementById('xs'); xs.innerHTML = '';
+  vis.filter(v => EXTRA[v]).forEach(v => { const b = document.createElement('button'); b.className = 'xbtn';
+    b.innerHTML = ICON + EXTRA[v][0] + ` <small style="opacity:.6">· s.${v}</small>`; b.onclick = () => openExtra(v); xs.appendChild(b); });
+}
+pf.on('flip', upd); pf.on('changeOrientation', upd);
+prev.onclick = () => pf.flipPrev(); next.onclick = () => pf.flipNext();
+document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') pf.flipPrev(); if (e.key === 'ArrowRight') pf.flipNext(); if (e.key === 'Escape') closeExtra(); });
+// QR bağlantısı: .../bulut/#s5 → 5. sayfa açılır
+const m = location.hash.match(/^#s(\d+)/);
+if (m) { const t = Math.min(Math.max(+m[1], 1), N) - 1; setTimeout(() => { pf.turnToPage(t); upd(); if (EXTRA[t + 1] && /x$/.test(location.hash)) openExtra(t + 1); }, 50); } else upd();
+const modal = document.getElementById('modal');
+function openExtra(i) { const x = EXTRA[i]; document.getElementById('m-t').textContent = x[1]; document.getElementById('m-k').textContent = x[2]; document.getElementById('m-p').textContent = x[3]; modal.classList.add('on'); }
+function closeExtra() { modal.classList.remove('on'); }
+modal.addEventListener('click', e => { if (e.target === modal || e.target.classList.contains('x')) closeExtra(); });
+</script>
+</body>
+</html>
