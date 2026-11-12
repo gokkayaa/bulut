@@ -85,7 +85,53 @@ function cevap(el, which) {
   });
 }
 
+// ---------- Servis (Google Apps Script) ----------
+const SERVIS = '';   // web uygulaması adresi gelince buraya yazılacak
+async function gonder(veri) {
+  if (!SERVIS) return null;
+  try { const r = await fetch(SERVIS, { method: 'POST', body: JSON.stringify(veri) }); return await r.json(); }
+  catch (e) { return null; }
+}
+const hafiza = { al: k => { try { return localStorage.getItem('bulut_' + k); } catch (e) { return null; } },
+                 yaz: (k, v) => { try { localStorage.setItem('bulut_' + k, v); } catch (e) {} } };
+
+// ---------- 8. sayfa: O mu, bu mu? ----------
+const OMU = [
+  ['cay', 'Çay', 'kahve', 0], ['simit', 'Simit', 'boorsok', 0], ['doner', 'Döner', 'plov', 0], ['kimiz', 'Kımız', 'ayran', 2],
+  ['tatli', 'Tatlı', 'tuzlu', 1], ['istanbul', 'İstanbul', 'Bişkek', 0], ['yaz', 'Yaz', 'kış', 0], ['sahil', 'Sahil', 'yayla', 1],
+  ['sabah', 'Sabah dersi', 'öğleden sonra', 0], ['kalem', 'Tahta kalemi', 'tebeşir', 0], ['futbol', 'Futbol', 'basketbol', 0],
+  ['kedi', 'Kedi', 'köpek', 0], ['erken', 'Erken kalkmak', 'geç yatmak', 0],
+];
+function omu(el) {
+  el.append(h(`<video class="vid" src="video/roportaj.mp4" poster="video/roportaj.jpg" controls playsinline preload="metadata"></video>
+    <p class="lead">Şimdi sıra sende! Sen hangisini seçerdin? <span>Эми сенин кезегиң! Сен кайсынысын тандайт элең?</span></p><div class="omu"></div>`));
+  const box = el.querySelector('.omu');
+  OMU.forEach(([id, a, b, hoca], n) => {
+    const row = h(`<div class="oq"><div class="on">${n + 1}</div><div class="ob"></div><div class="orz"></div></div>`).firstChild;
+    const ob = row.querySelector('.ob'), orz = row.querySelector('.orz');
+    const goster = (secim, sonuc) => {
+      ob.querySelectorAll('button').forEach(x => { x.disabled = true; x.classList.toggle('sel', x.dataset.v === secim); });
+      const hocaTxt = hoca === 2 ? `${a} da olur, ${b} da!` : (hoca === 0 ? a : b);
+      let t = `<b>Bülent Hoca:</b> ${hocaTxt}`;
+      if (sonuc) {
+        const top = (sonuc[a] || 0) + (sonuc[b] || 0) || 1, pa = Math.round(100 * (sonuc[a] || 0) / top);
+        t += `<div class="bar"><i style="width:${pa}%"></i></div><small>${a} %${pa} · ${b} %${100 - pa}</small>`;
+      }
+      orz.innerHTML = t;
+    };
+    [a, b].forEach(v => {
+      const bt = document.createElement('button'); bt.textContent = v; bt.dataset.v = v;
+      bt.onclick = async () => { hafiza.yaz('omu_' + id, v); goster(v); const r = await gonder({ tur: 'oy', soru: id, secim: v }); if (r && r.sonuc) goster(v, r.sonuc); };
+      ob.appendChild(bt);
+    });
+    const onceki = hafiza.al('omu_' + id);
+    if (onceki) { goster(onceki); if (SERVIS) fetch(SERVIS + '?soru=' + id).then(r => r.json()).then(r => r && r.sonuc && goster(onceki, r.sonuc)).catch(() => {}); }
+    box.appendChild(row);
+  });
+}
+
 window.BULUT_EXTRA = {
+  8: omu,
   5: kulak,
   17: (el) => { cevap(el, 17); el.append(h(`<p class="soon2">Kar leoparı videoları yakında! · Видеолор жакында!</p>`)); },
   18: (el) => { cevap(el, 18); el.append(h(`<p class="soon2">Rota anketi yakında! · Сурамжылоо жакында!</p>`)); },
