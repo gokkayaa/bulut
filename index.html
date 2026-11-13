@@ -69,7 +69,7 @@ nav button:disabled{opacity:.35;cursor:default}
 .frm label{display:flex;flex-direction:column;gap:3px;font-weight:800;font-size:12.5px;color:#56657c}
 .frm input,.frm select{font-family:Nunito;font-weight:700;font-size:16px;padding:10px 12px;border:2px solid #cfe2ea;border-radius:10px;background:#fff;color:var(--navy)}
 .frm .file input{padding:8px;font-size:14px}
-.frm2{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.frm2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px} .frm input,.frm select{min-width:0;width:100%}
 .frm button[type=submit]{border:none;border-radius:12px;background:var(--tq);color:#fff;font-family:Nunito;font-weight:900;font-size:16px;padding:12px;cursor:pointer}
 .frm button:disabled{opacity:.6}
 .hint2{font-weight:700;font-size:13px;color:#56657c;margin:0}
@@ -136,7 +136,7 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
 </div></div>
 
 <script src="lib/page-flip.browser.js"></script>
-<script src="ekstralar.js?v=20261114b"></script>
+<script src="ekstralar.js?v=20261114c"></script>
 <script>
 const N = 20;
 // Sayfa ekstraları: sayfa no → [buton yazısı, başlık, kırgızca, açıklama]

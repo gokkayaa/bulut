@@ -89,8 +89,9 @@ function cevap(el, which) {
 const SERVIS = 'https://script.google.com/macros/s/AKfycbxSTdCiB7F_x7b2nBfbUV8wJ-ZskhRQORiWWqHuy4w5uXkuiZSYcj1rbKjwQbLGxNXBlQ/exec';   // web uygulaması adresi gelince buraya yazılacak
 async function gonder(veri) {
   if (!SERVIS) return null;
-  try { const r = await fetch(SERVIS, { method: 'POST', body: JSON.stringify(veri) }); return await r.json(); }
-  catch (e) { return null; }
+  try { const r = await fetch(SERVIS, { method: 'POST', body: JSON.stringify(veri) }); const t = await r.text();
+    try { const j = JSON.parse(t); if (!j.ok) console.warn('BULUT servis:', j.hata); return j; } catch (e) { window.BULUT_HATA = 'yanıt ' + r.status; return null; } }
+  catch (e) { window.BULUT_HATA = 'bağlantı'; return null; }
 }
 const hafiza = { al: k => { try { return localStorage.getItem('bulut_' + k); } catch (e) { return null; } },
                  yaz: (k, v) => { try { localStorage.setItem('bulut_' + k, v); } catch (e) {} } };
@@ -155,7 +156,7 @@ function fotoForm(el, konular, baslik) {
       x.upload.onprogress = ev => { if (ev.lengthComputable) { pg.style.display = 'block'; bar.style.width = (100 * ev.loaded / ev.total) + '%'; durum(st, 'Yükleniyor… %' + Math.round(100 * ev.loaded / ev.total)); } };
       x.onload = () => { btn.disabled = false; let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {}
         if (r.ok) { durum(st, 'Teşekkürler! Fotoğrafın bize ulaştı. · Рахмат!', true); f.reset(); bar.style.width = '0'; pg.style.display = 'none'; }
-        else durum(st, 'Bir sorun oldu, tekrar dene.', false); };
+        else durum(st, 'Bir sorun oldu, tekrar dene. (' + (r && r.hata ? r.hata : window.BULUT_HATA || '?') + ')', false); };
       x.onerror = () => { btn.disabled = false; durum(st, 'İnternet bağlantını kontrol et, tekrar dene.', false); };
       x.send(JSON.stringify({ tur: 'foto', ad: f.ad.value, sinif: f.sinif.value, konu: f.konu.value, dosya: file.name, mime: file.type, veri }));
     };
@@ -195,7 +196,7 @@ function avi(el) {
     const r = await gonder({ tur: 'avi', ad: f.ad.value, sinif: f.sinif.value, cevap: f.cevap.value });
     btn.disabled = false;
     if (r && r.ok) { hafiza.yaz('avi', '1'); durum(st, 'Cevabın alındı! Çekilişte bol şans! · Ийгилик!', true); f.reset(); }
-    else durum(st, 'Bir sorun oldu, tekrar dene.', false); };
+    else durum(st, 'Bir sorun oldu, tekrar dene. (' + (r && r.hata ? r.hata : window.BULUT_HATA || '?') + ')', false); };
   el.appendChild(f);
 }
 
@@ -210,7 +211,7 @@ function soz(el) {
   f.onsubmit = async e => { e.preventDefault(); const btn = f.querySelector('button'); btn.disabled = true; durum(st, 'Gönderiliyor…');
     const r = await gonder({ tur: 'soz', ad: f.ad.value, sinif: f.sinif.value, balonlar: [0, 1, 2, 3].map(i => f['b' + i].value) });
     btn.disabled = false;
-    if (r && r.ok) { durum(st, 'Teşekkürler! Balonların bize ulaştı. · Рахмат!', true); f.reset(); } else durum(st, 'Bir sorun oldu, tekrar dene.', false); };
+    if (r && r.ok) { durum(st, 'Teşekkürler! Balonların bize ulaştı. · Рахмат!', true); f.reset(); } else durum(st, 'Bir sorun oldu, tekrar dene. (' + (r && r.hata ? r.hata : window.BULUT_HATA || '?') + ')', false); };
   el.appendChild(f);
   fotoForm(el, ['Söz Sende balonlarım'], 'Kâğıda yazdıysan fotoğrafını gönder! <span>Сүрөтүн жөнөт!</span>');
 }
