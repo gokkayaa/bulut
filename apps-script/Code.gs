@@ -1,11 +1,12 @@
 /**
  * Dijital BULUT — cevap toplama servisi
- * Bu kod "BULUT Cevaplar" Google E-Tablosuna bağlı çalışır.
- * Kurulum: E-Tablo > Uzantılar > Apps Script > bu kodu yapıştır > Dağıt > Yeni dağıtım > Web uygulaması
+ * Cevaplar "BULUT Cevaplar" Google E-Tablosuna yazılır (TABLO_ID).
+ * Kurulum: script.google.com > Yeni proje > bu kodu yapıştır > Dağıt > Yeni dağıtım > Web uygulaması
  *   Yürüten: Ben · Erişimi olan: Herkes
  */
 
 const FOTO_KLASOR = 'BULUT Fotoğrafları';
+const TABLO_ID = '1H6JOTwX2jp6jkBpCdEj_wMOBvDA_E6ejq7VPm1wEQaw';   // BULUT Cevaplar tablosu
 
 const SAYFALAR = {
   oy:   ['Oylar',        ['Tarih', 'Soru', 'Seçim']],
@@ -17,7 +18,7 @@ const DOGRU_CEVAP = 'HEDEFİNBULUTLAROLSUN';
 
 function sayfa_(tur) {
   const [ad, basliklar] = SAYFALAR[tur];
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(TABLO_ID);
   let sh = ss.getSheetByName(ad);
   if (!sh) {
     sh = ss.insertSheet(ad);

@@ -5,12 +5,13 @@
 <button id="b">Kodu kopyala</button><div id="ok"></div>
 <textarea id="t" readonly>/**
  * Dijital BULUT — cevap toplama servisi
- * Bu kod &quot;BULUT Cevaplar&quot; Google E-Tablosuna bağlı çalışır.
- * Kurulum: E-Tablo &gt; Uzantılar &gt; Apps Script &gt; bu kodu yapıştır &gt; Dağıt &gt; Yeni dağıtım &gt; Web uygulaması
+ * Cevaplar &quot;BULUT Cevaplar&quot; Google E-Tablosuna yazılır (TABLO_ID).
+ * Kurulum: script.google.com &gt; Yeni proje &gt; bu kodu yapıştır &gt; Dağıt &gt; Yeni dağıtım &gt; Web uygulaması
  *   Yürüten: Ben · Erişimi olan: Herkes
  */
 
 const FOTO_KLASOR = &#x27;BULUT Fotoğrafları&#x27;;
+const TABLO_ID = &#x27;1H6JOTwX2jp6jkBpCdEj_wMOBvDA_E6ejq7VPm1wEQaw&#x27;;   // BULUT Cevaplar tablosu
 
 const SAYFALAR = {
   oy:   [&#x27;Oylar&#x27;,        [&#x27;Tarih&#x27;, &#x27;Soru&#x27;, &#x27;Seçim&#x27;]],
@@ -22,7 +23,7 @@ const DOGRU_CEVAP = &#x27;HEDEFİNBULUTLAROLSUN&#x27;;
 
 function sayfa_(tur) {
   const [ad, basliklar] = SAYFALAR[tur];
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(TABLO_ID);
   let sh = ss.getSheetByName(ad);
   if (!sh) {
     sh = ss.insertSheet(ad);
