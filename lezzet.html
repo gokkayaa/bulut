@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Lezzet Turu · Dijital BULUT</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{--tq:#00adb9;--navy:#14264a;--yel:#ffd23f;--red:#e0453b;--grn:#1f9a5a}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#6cc6ea;font-family:Nunito,system-ui,sans-serif;color:var(--navy)}
+#vp{position:fixed;inset:0;overflow:hidden;touch-action:none}
+#board{position:absolute;left:0;top:0;width:3750px;height:2652px;transform-origin:0 0;transition:transform 1s cubic-bezier(.45,.05,.3,1)}
+#board img{position:absolute;top:0;width:1875px;height:2652px;user-select:none;-webkit-user-drag:none}
+#me{position:absolute;left:0;top:0;width:0;height:0;transition:transform .9s cubic-bezier(.45,.05,.3,1);z-index:5}
+#me .pin{position:absolute;left:-46px;top:-118px;width:92px;height:118px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35));animation:bob 1.4s ease-in-out infinite}
+#me .lbl{position:absolute;left:-34px;top:-160px;width:68px;text-align:center;background:var(--navy);color:#fff;font-weight:900;font-size:22px;border-radius:14px;padding:3px 0}
+#me .ring{position:absolute;left:-40px;top:-14px;width:80px;height:28px;border-radius:50%;background:rgba(0,173,185,.35);animation:ring 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-12px)}} @keyframes ring{50%{transform:scale(.75)}}
+.hl{position:absolute;width:130px;height:130px;margin:-65px 0 0 -65px;border-radius:50%;border:8px solid var(--yel);box-shadow:0 0 0 6px rgba(255,210,63,.35);animation:pulse 1.2s infinite;pointer-events:none;z-index:4}
+@keyframes pulse{50%{transform:scale(1.15);opacity:.7}}
+#top{position:fixed;left:0;right:0;top:0;z-index:20;padding:8px 10px;display:flex;gap:8px;align-items:center;background:linear-gradient(rgba(20,38,74,.92),rgba(20,38,74,.8))}
+#top a{color:#fff;text-decoration:none;font-weight:900;font-size:22px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex:none}
+#pass{flex:1;display:flex;gap:4px;justify-content:center;flex-wrap:nowrap}
+#pass i{width:26px;height:32px;border:2px dashed rgba(255,255,255,.5);border-radius:6px;font-style:normal;font-family:Anton;font-size:20px;color:var(--navy);display:flex;align-items:center;justify-content:center;flex:none}
+#pass i.on{background:var(--yel);border:2px solid var(--yel);animation:stamp .5s}
+#pass i.sp{width:8px;border:none}
+@keyframes stamp{0%{transform:scale(2.2) rotate(-15deg);opacity:0}100%{transform:none;opacity:1}}
+#mapbtn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:18px;padding:8px 10px;font-family:Nunito;font-weight:900;font-size:13px;flex:none}
+#card{position:fixed;left:50%;bottom:12px;transform:translate(-50%,140%);width:min(560px,calc(100% - 20px));background:#fff;border-radius:20px;padding:14px 16px 16px;z-index:20;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .45s cubic-bezier(.3,1.3,.5,1)}
+#card.on{transform:translate(-50%,0)}
+#card .city{display:flex;align-items:center;gap:8px;font-weight:900;font-size:19px}
+#card .city b{width:30px;height:30px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+#card .city small{margin-left:auto;font-size:12px;color:#8a95a8}
+#card .q{font-weight:800;font-size:17px;line-height:1.35;margin:8px 0 10px}
+#card .opts{display:flex;flex-direction:column;gap:8px}
+#card .opts button{display:flex;align-items:center;gap:10px;text-align:left;border:2.5px solid #d7e6ee;background:#f7fbfd;border-radius:14px;padding:11px 12px;font-family:Nunito;font-weight:800;font-size:16px;color:var(--navy);cursor:pointer}
+#card .opts button span{width:30px;height:30px;border-radius:8px;background:var(--yel);border:2px solid var(--navy);font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+#card .opts button.ok{border-color:var(--grn);background:#e7f8ee} #card .opts button.no{border-color:var(--red);background:#fdeceb}
+#card .msg{font-weight:900;font-size:16px;margin-top:8px} #card .msg small{display:block;font-weight:700;font-size:13px;color:#56657c}
+#card .go{margin-top:10px;width:100%;border:none;border-radius:14px;background:var(--tq);color:#fff;font-family:Nunito;font-weight:900;font-size:17px;padding:12px;cursor:pointer}
+#intro,#end{position:fixed;inset:0;z-index:30;background:rgba(10,24,52,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+#end{display:none}
+.box{width:min(480px,100%);background:#fff;border-radius:22px;padding:22px;text-align:center;max-height:92vh;overflow:auto}
+.box h1{font-family:Anton;font-size:44px;line-height:1;color:var(--red);letter-spacing:1px}
+.box h2{font-weight:800;font-size:14px;color:var(--tq);margin-top:2px}
+.box p{font-weight:700;font-size:15.5px;line-height:1.45;margin-top:12px}
+.box .big{width:100%;margin-top:16px;border:none;border-radius:16px;background:var(--red);color:#fff;font-family:Anton;font-size:26px;letter-spacing:1px;padding:12px;cursor:pointer}
+.word{font-family:Anton;font-size:40px;color:var(--navy);letter-spacing:3px;margin-top:6px}
+.foods{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.foods button{border:2px solid var(--tq);background:#fff;border-radius:12px;padding:9px 6px;font-family:Nunito;font-weight:900;font-size:14.5px;color:var(--navy);cursor:pointer;display:flex;justify-content:space-between;gap:4px}
+.foods button.sel{background:var(--tq);color:#fff} .foods button:disabled:not(.sel){opacity:.6}
+@media(max-width:430px){#pass{gap:2px} #pass i{width:22px;height:28px;font-size:17px} #pass i.sp{width:5px} #mapbtn{padding:7px 8px;font-size:12px}}
+.small{font-size:13px!important;color:#56657c}
+</style>
+</head>
+<body>
+<div id="vp"><div id="board">
+  <img src="sayfalar/s12.jpg" style="left:0" alt="">
+  <img src="sayfalar/s13.jpg" style="left:1875px" alt="">
+  <div id="hl" class="hl" style="display:none"></div>
+  <div id="me"><div class="ring"></div><div class="lbl">SEN</div>
+    <svg class="pin" viewBox="0 0 46 59"><path d="M23 2C11.4 2 2 11.2 2 22.6 2 38 23 57 23 57s21-19 21-34.4C44 11.2 34.6 2 23 2z" fill="#00adb9" stroke="#fff" stroke-width="3"/><circle cx="23" cy="22" r="9" fill="#fff"/><circle cx="23" cy="22" r="4.5" fill="#14264a"/></svg>
+  </div>
+</div></div>
+
+<div id="top">
+  <a href="./#s12" aria-label="Dergiye dön">‹</a>
+  <div id="pass"></div>
+  <button id="mapbtn">Harita</button>
+</div>
+
+<div id="card">
+  <div class="city"><b id="c-n"></b><span id="c-t"></span><small id="c-f"></small></div>
+  <div class="q" id="c-q"></div>
+  <div class="opts" id="c-o"></div>
+  <div class="msg" id="c-m"></div>
+  <button class="go" id="c-go" style="display:none"></button>
+</div>
+
+<div id="intro"><div class="box">
+  <h1>LEZZET TURU!</h1><h2>Даам туру</h2>
+  <p>İstanbul'dan başla! Her şehirde soruyu oku. Doğru cevap seni bir sonraki lezzete götürür. Yanlış yol seni güzel bir yere götürür ama geri dönmen gerekir!</p>
+  <p class="small">Her doğru cevapta pasaportuna bir harf gelir. 11 harf, gizli bir söz!</p>
+  <button class="big" id="start">BAŞLA!</button>
+</div></div>
+
+<div id="end"><div class="box">
+  <h1>TEBRİKLER!</h1><h2>Куттуктайбыз!</h2>
+  <p>Türkiye lezzet turunu bitirdin! Pasaportundaki söz:</p>
+  <div class="word">AFİYET OLSUN!</div>
+  <p class="small">Kırgızcası: «Тамагыңыз таттуу болсун!»</p>
+  <p><b>Sence en lezzetli yemek hangisi?</b></p>
+  <div class="foods" id="foods"></div>
+  <p class="small" id="f-msg"></p>
+  <button class="big" id="again" style="background:var(--tq);font-size:20px">Tekrar oyna</button>
+</div></div>
+
+<script>
+const SERVIS = 'https://script.google.com/macros/s/AKfycbxSTdCiB7F_x7b2nBfbUV8wJ-ZskhRQORiWWqHuy4w5uXkuiZSYcj1rbKjwQbLGxNXBlQ/exec';
+const K = 1875 / 1213;                     // 110 dpi ölçüsünden tahta ölçüsüne
+const P = (pg, x, y) => [(pg === 13 ? 1213 : 0) * K + x * K, y * K];
+// [şehir, yemek, soru, A, B, doğru, doğru tabela, yanlış tabela, çıkmaz, çıkmaz adı, durak, sonraki]
+const ST = [
+ ['İstanbul','simit','Bir simit 15 lira. İki simit kaç lira?','Otuz lira.','On beş lira.','A', P(12,724,487), P(12,686,358), P(12,630,290),'Boğaz', P(12,677,420)],
+ ['Bursa','İskender','Garson: "Hoş geldiniz!" Sen ne dersin?','Rica ederim.','Hoş bulduk!','B', P(12,601,593), P(12,667,648), P(12,710,725),'Uludağ', P(12,678,545)],
+ ['İzmir','boyoz','"İki boyoz ___ istiyorum."','almak','alalım','A', P(12,527,822), P(12,426,786), P(12,400,915),'Efes', P(12,491,712)],
+ ['Antalya','piyaz','Piyazda tahin var. Piyaz…','tahinli','tahinsiz','A', P(12,924,1002), P(12,874,1070), P(12,955,1115),'Düden Şelalesi', P(12,836,985)],
+ ['Konya','etli ekmek','Etli ekmek 1 metre, pide 50 santim. Hangisi daha uzun?','Pide etli ekmekten daha uzun.','Etli ekmek pideden daha uzun.','B', P(12,1127,845), P(12,981,794), P(12,850,795),'Tuz Gölü', P(12,1041,828)],
+ ['Kayseri','mantı','Mantı 120 lira, kebap 150 lira. Hangisi daha ucuz?','Mantı kebaptan daha ucuz.','Kebap mantıdan daha ucuz.','A', P(13,98,853), P(13,121,708), P(13,45,650),'Kapadokya', P(13,138,768)],
+ ['Adana','Adana kebap','Adana kebap nasıl?','tatlı','acı','B', P(13,150,1015), P(13,77,1043), P(13,115,1105),'Seyhan', P(13,77,937)],
+ ['Gaziantep','baklava','Türkiye\'nin en meşhur tatlısı…','baklavadır.','menemendir.','A', P(13,374,980), P(13,324,900), P(13,300,830),'Nemrut Dağı', P(13,291,953)],
+ ['Van','kahvaltı','Kahvaltıda ne yeriz?','kebap ve pilav','peynir ve zeytin','B', P(13,913,690), P(13,983,795), P(13,1090,755),'Van Gölü', P(13,902,753)],
+ ['Rize','çay','Çaya şeker koymadım. Bu çay…','şekersiz','şekerli','A', P(13,546,462), P(13,699,421), P(13,715,355),'Ayder Yaylası', P(13,635,452)],
+ ['Trabzon','hamsi','"Haydi, hamsi ___!"','yiyorum','yiyelim','B', P(13,438,447), P(13,430,553), P(13,405,670),'Uzungöl', P(13,497,478)],
+];
+const FINISH = P(12,612,490);
+const SOZ = 'AFİYETOLSUN';
+const FOODS = ST.map(s => s[1]);
+
+const vp = document.getElementById('vp'), board = document.getElementById('board'), me = document.getElementById('me'), hl = document.getElementById('hl');
+const pass = document.getElementById('pass');
+SOZ.split('').forEach((c, i) => { if (i === 6) pass.insertAdjacentHTML('beforeend', '<i class="sp"></i>'); pass.insertAdjacentHTML('beforeend', `<i data-i="${i}"></i>`); });
+
+let cur = 0, busy = false, full = false, pos = ST[0][10];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+// ---- kamera ----
+function zoomScale() { return Math.min(innerWidth / 1100, innerHeight / 1000) * 1.0; }
+function cam(x, y, s, instant) {
+  s = s || zoomScale();
+  const cy = innerHeight * (document.getElementById('card').classList.contains('on') ? .33 : .5);
+  let tx = innerWidth / 2 - x * s, ty = cy - y * s;
+  tx = Math.min(0, Math.max(innerWidth - 3750 * s, tx)); ty = Math.min(60, Math.max(innerHeight - 2652 * s, ty));
+  board.style.transition = instant ? 'none' : ''; board.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+}
+function showAll() { const s = Math.min(innerWidth / 3750, (innerHeight - 60) / 2652); board.style.transform = `translate(${(innerWidth - 3750 * s) / 2}px,${60 + (innerHeight - 60 - 2652 * s) / 2}px) scale(${s})`; }
+document.getElementById('mapbtn').onclick = () => { full = !full; full ? showAll() : cam(...pos); document.getElementById('mapbtn').textContent = full ? 'Yakın' : 'Harita'; };
+addEventListener('resize', () => full ? showAll() : cam(...pos, 0, true));
+
+// ---- hareket ----
+function place(p, instant) { pos = p; me.style.transition = instant ? 'none' : ''; me.style.transform = `translate(${p[0]}px,${p[1]}px)`; }
+async function move(p, ms = 950) { place(p); if (!full) cam(...p); await wait(ms); }
+function mark(p) { if (!p) { hl.style.display = 'none'; return; } hl.style.display = 'block'; hl.style.left = p[0] + 'px'; hl.style.top = p[1] + 'px'; }
+
+// ---- sesler ----
+let AC; const tone = (f, d, t = 'sine', v = .15, when = 0) => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+  const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime + when; o.type = t; o.frequency.value = f; g.gain.setValueAtTime(v, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + d); o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + d); } catch (e) {} };
+const sOk = () => { tone(660, .12, 'triangle'); tone(880, .12, 'triangle', .15, .1); tone(1320, .25, 'triangle', .12, .2); };
+const sNo = () => { tone(240, .25, 'sawtooth', .08); tone(180, .35, 'sawtooth', .08, .15); };
+const sStamp = () => tone(120, .15, 'square', .12);
+
+// ---- kart ----
+const card = document.getElementById('card'), $ = id => document.getElementById(id);
+function ask() {
+  const s = ST[cur];
+  $('c-n').textContent = cur + 1; $('c-t').textContent = s[0]; $('c-f').textContent = s[1];
+  $('c-q').textContent = s[2]; $('c-m').innerHTML = ''; $('c-go').style.display = 'none';
+  const o = $('c-o'); o.innerHTML = '';
+  ['A', 'B'].forEach((L, k) => { const b = document.createElement('button'); b.innerHTML = `<span>${L}</span>${s[3 + k]}`; b.onclick = () => answer(L, b); o.appendChild(b); });
+  card.classList.add('on'); mark(null); if (!full) cam(...pos);
+}
+async function answer(L, btn) {
+  if (busy) return; busy = true;
+  const s = ST[cur], ok = L === s[5];
+  document.querySelectorAll('#c-o button').forEach(b => b.disabled = true);
+  if (ok) {
+    sOk(); btn.classList.add('ok');
+    $('c-m').innerHTML = `Doğru! Pasaportuna bir harf geldi. <small>Туура! ${s[0]} lezzeti: ${s[1]}</small>`;
+    const slot = pass.querySelector(`i[data-i="${cur}"]`); slot.textContent = SOZ[cur]; slot.classList.add('on'); sStamp();
+    await wait(1300); card.classList.remove('on');
+    await move(s[6], 900);
+    cur++;
+    if (cur < ST.length) { await move(ST[cur][10], 1000); busy = false; ask(); }
+    else { await move(FINISH, 1400); busy = false; finish(); }
+  } else {
+    sNo(); btn.classList.add('no');
+    await wait(500); card.classList.remove('on');
+    await move(s[7], 800); await move(s[8], 900); mark(s[8]);
+    $('c-o').innerHTML = '';
+    $('c-m').innerHTML = `Yanlış yol! Burası <b>${s[9]}</b>. Çok güzel ama lezzet burada değil. <small>Туура эмес жол! Артка кайт.</small>`;
+    $('c-go').textContent = 'Geri dön · Артка'; $('c-go').style.display = 'block';
+    card.classList.add('on'); busy = false;
+    $('c-go').onclick = async () => { if (busy) return; busy = true; card.classList.remove('on'); mark(null);
+      await move(s[7], 800); await move(s[10], 900); busy = false; ask(); };
+  }
+}
+
+// ---- son ----
+function finish() {
+  $('end').style.display = 'flex'; tone(523, .15, 'triangle'); tone(659, .15, 'triangle', .15, .15); tone(784, .15, 'triangle', .15, .3); tone(1046, .4, 'triangle', .15, .45);
+  const f = $('foods'); f.innerHTML = '';
+  let onceki = null; try { onceki = localStorage.getItem('bulut_yemek'); } catch (e) {}
+  const goster = (sec, sonuc) => { const top = sonuc ? Object.values(sonuc).reduce((a, b) => a + b, 0) || 1 : 0;
+    f.querySelectorAll('button').forEach(b => { b.disabled = true; b.classList.toggle('sel', b.dataset.v === sec); if (sonuc) b.querySelector('small').textContent = '%' + Math.round(100 * (sonuc[b.dataset.v] || 0) / top); });
+    $('f-msg').textContent = 'Oyun alındı! Sonucu gelecek sayıda yazacağız.'; };
+  FOODS.forEach(y => { const b = document.createElement('button'); b.dataset.v = y; b.innerHTML = `${y}<small></small>`;
+    b.onclick = async () => { try { localStorage.setItem('bulut_yemek', y); } catch (e) {} goster(y);
+      try { const r = await (await fetch(SERVIS, { method: 'POST', body: JSON.stringify({ tur: 'oy', soru: 'yemek', secim: y }) })).json(); if (r.sonuc) goster(y, r.sonuc); } catch (e) {} };
+    f.appendChild(b); });
+  if (onceki) { goster(onceki); fetch(SERVIS + '?soru=yemek').then(r => r.json()).then(r => r.sonuc && goster(onceki, r.sonuc)).catch(() => {}); }
+}
+$('again').onclick = () => { $('end').style.display = 'none'; cur = 0; pass.querySelectorAll('i').forEach(i => { i.textContent = ''; i.classList.remove('on'); }); place(ST[0][10], true); cam(...ST[0][10]); ask(); };
+
+// ---- başla ----
+place(FINISH, true); cam(...FINISH, 0, true);
+$('start').onclick = async () => { $('intro').style.display = 'none'; tone(440, .01); await move(ST[0][10], 900); ask(); };
+</script>
+</body>
+</html>

@@ -216,6 +216,8 @@ function soz(el) {
 }
 
 window.BULUT_EXTRA = {
+  12: () => { location.href = 'lezzet.html'; },
+  13: () => { location.href = 'lezzet.html'; },
   8: omu,
   5: kulak,
   17: (el) => { cevap(el, 17); el.append(h(`<p class="soon2">Kar leoparı videoları yakında! · Видеолор жакында!</p>`)); },
