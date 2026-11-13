@@ -129,7 +129,7 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
 </div></div>
 
 <script src="lib/page-flip.browser.js"></script>
-<script src="ekstralar.js"></script>
+<script src="ekstralar.js?v=20261114"></script>
 <script>
 const N = 20;
 // Sayfa ekstraları: sayfa no → [buton yazısı, başlık, kırgızca, açıklama]
@@ -138,8 +138,8 @@ const EXTRA = {
   5:  ['Dinle', 'Kulağa Tanıdık Geliyor!', 'Угуп көр', 'Kelimeye dokun, Türkçesini dinle.'],
   8:  ['İzle ve seç', 'O mu, bu mu?', 'Көр жана танда', 'Röportaj videosunu izle. Sonra sen de seç: arkadaşların ne seçmiş, gör!'],
   9:  ['Yaz', 'Söz Sende!', 'Сөз сенде!', 'Balonlara sen yaz, bize gönder.'],
-  12: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!'],
-  13: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!'],
+  12: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!', 'lezzet.html'],
+  13: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!', 'lezzet.html'],
   15: ['Galeri', 'Bulutta Bir Hayvan', 'Булуттагы жаныбар', 'Arkadaşlarının bulut fotoğrafları burada.'],
   17: ['Videolar', 'Dağların Hayaleti', 'Тоолордун арбагы', 'Kar leoparı, Anadolu parsı, kangal ve caretta videoları.'],
   18: ['Keşfet', 'Bulut Yolda', 'Булут жолдо', 'Haritada Bulut ile Kar\'ın yolunu izle. Yeni rotayı sen seç!'],
@@ -269,6 +269,7 @@ const m = location.hash.match(/^#s(\d+)/);
 if (m) { const t = Math.min(Math.max(+m[1], 1), N) - 1; setTimeout(() => { pf.turnToPage(t); upd(); if (EXTRA[t + 1] && /x$/.test(location.hash)) openExtra(t + 1); }, 50); } else upd();
 const modal = document.getElementById('modal');
 function openExtra(i) {
+  if (EXTRA[i][4]) { location.href = EXTRA[i][4]; return; }
   const x = EXTRA[i], fn = (window.BULUT_EXTRA || {})[i], body = document.getElementById('m-body');
   document.getElementById('m-t').textContent = x[1]; document.getElementById('m-k').textContent = x[2];
   document.getElementById('m-p').textContent = fn ? '' : x[3];
