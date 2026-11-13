@@ -90,7 +90,7 @@ nav button:disabled{opacity:.35;cursor:default}
 #zx .xbtn{font-size:16px;padding:11px 18px 11px 14px}
 #zhint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(20,38,74,.85);padding:6px 14px;border-radius:16px;font-size:12.5px;font-weight:800;transition:opacity .6s}
 nav button svg{display:block;margin:auto}
-@media(max-width:480px){nav{gap:7px} nav button{width:40px;height:40px;font-size:18px} #pno{min-width:62px;font-size:13.5px} .hint{display:none} #zbar{gap:5px;padding:6px 8px} #zbar button{width:40px;height:40px} #zno{min-width:46px;font-size:12.5px}}
+@media(max-width:480px){nav{gap:9px} nav button{width:42px;height:42px;font-size:18px} #pno{min-width:62px;font-size:13.5px} .hint{font-size:11px} #zbar{gap:5px;padding:6px 8px} #zbar button{width:40px;height:40px} #zno{min-width:46px;font-size:12.5px}}
 footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12px 14px}
 </style>
 </head>
@@ -106,11 +106,10 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
     <div id="pno">1 / 20</div>
     <button id="next" aria-label="Sonraki sayfa">›</button>
     <button id="tek" aria-label="Tek sayfa / çift sayfa" title="Tek sayfa / çift sayfa"><svg width="22" height="20" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2.4"><rect id="tek-ico" x="2" y="2" width="9" height="16" rx="1.5"/><rect x="13" y="2" width="9" height="16" rx="1.5"/></svg></button>
-    <button id="zm" aria-label="Büyüt" title="Büyüt"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg></button>
     <button id="fs" aria-label="Tam ekran" title="Tam ekran"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </nav>
   <div id="xs"></div>
-  <div class="hint">Sayfanın köşesinden tutup çevir. Okumak için sayfaya çift dokun.</div>
+  <div class="hint">Sayfayı çevirmek için köşesinden tut. Büyütmek için iki parmağını aç.</div>
 </main>
 <footer>BULUT · Cengiz Aytmatov Lisesi Gazete ve Dergi Kulübü</footer>
 
@@ -118,11 +117,9 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
   <div id="zstage"><img id="zimg" alt=""></div>
   <div id="zbar">
     <button id="zprev" aria-label="Önceki sayfa">‹</button><span id="zno"></span><button id="znext" aria-label="Sonraki sayfa">›</button>
-    <button id="zout" aria-label="Küçült">−</button><button id="zin" aria-label="Büyüt">+</button>
     <button id="zclose" aria-label="Kapat">×</button>
   </div>
   <div id="zx"></div>
-  <div id="zhint">İki parmakla büyüt · Çift dokun: yakınlaş</div>
 </div>
 <div id="modal" role="dialog" aria-modal="true"><div class="card">
   <button class="x" aria-label="Kapat">×</button>
@@ -165,7 +162,7 @@ function fit(){ const avail = window.innerHeight - (document.fullscreenElement |
 fit(); window.addEventListener('resize', fit, true);
 const pf = new St.PageFlip(book, {
   width: 560, height: 792, size: 'stretch', minWidth: 280, maxWidth: 1400, minHeight: 396, maxHeight: 1980,
-  showCover: true, maxShadowOpacity: .45, mobileScrollSupport: true, flippingTime: 700, usePortrait: true
+  showCover: true, disableFlipByClick: true, maxShadowOpacity: .45, mobileScrollSupport: true, flippingTime: 700, usePortrait: true
 });
 pf.loadFromHTML(document.querySelectorAll('#book .page'));
 const pno = document.getElementById('pno'), prev = document.getElementById('prev'), next = document.getElementById('next');
@@ -195,34 +192,34 @@ tekBtn.onclick = () => { TEK = !TEK; try { localStorage.setItem('bulut_tek', TEK
   const cur = pf.getCurrentPageIndex(); fit(); tekIco();
   setTimeout(() => { window.dispatchEvent(new Event('resize')); setTimeout(() => { pf.turnToPage(cur); upd(); }, 80); }, 30); };
 // --- yakınlaştırma ---
+const ZW = 1875, ZH = 2652;   // sayfa görselinin (düşük çözünürlük) boyutu
 const Z = { el: document.getElementById('zoom'), img: document.getElementById('zimg'), stage: document.getElementById('zstage'), n: 1, s: 1, x: 0, y: 0, fit: 1 };
 function zApply() { Z.img.style.transform = `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`; }
 function zClamp() {
-  const W = innerWidth, H = innerHeight, w = Z.img.naturalWidth * Z.s, h = Z.img.naturalHeight * Z.s;
+  const W = innerWidth, H = innerHeight, w = ZW * Z.s, h = ZH * Z.s;
   Z.x = w <= W ? (W - w) / 2 : Math.min(0, Math.max(W - w, Z.x));
   Z.y = h <= H ? (H - h) / 2 : Math.min(0, Math.max(H - h, Z.y));
 }
-function zFit() { Z.fit = Math.min((innerWidth - 16) / Z.img.naturalWidth, (innerHeight - 90) / Z.img.naturalHeight); Z.s = Z.fit; Z.x = 0; Z.y = 8; zClamp(); Z.y = Math.max(8, Z.y - 35); zApply(); }
-function zAt(ns, cx, cy) { ns = Math.max(Z.fit, Math.min(Z.fit * 5, ns)); Z.x = cx - (cx - Z.x) * ns / Z.s; Z.y = cy - (cy - Z.y) * ns / Z.s; Z.s = ns; zClamp(); zApply(); }
+function zFit() { Z.fit = Math.min((innerWidth - 16) / ZW, (innerHeight - 90) / ZH); Z.s = Z.fit; Z.x = 0; Z.y = 8; zClamp(); Z.y = Math.max(8, Z.y - 35); zApply(); }
+function zAt(ns, cx, cy) { ns = Math.max(Z.fit * 0.7, Math.min(Z.fit * 6, ns)); Z.x = cx - (cx - Z.x) * ns / Z.s; Z.y = cy - (cy - Z.y) * ns / Z.s; Z.s = ns; if (ns >= Z.fit) zClamp(); zApply(); }
 function zLoad(n) {
   Z.n = Math.min(Math.max(n, 1), N); document.getElementById('zno').textContent = Z.n + ' / ' + N;
-  const lo = `sayfalar/s${String(Z.n).padStart(2,'0')}.jpg`, hi = `sayfalar_hd/s${String(Z.n).padStart(2,'0')}.jpg`;
-  Z.img.onload = () => { if (!Z.img.dataset.sized) { Z.img.dataset.sized = 1; } zFit(); Z.img.onload = null;
-    const big = new Image(); big.onload = () => { if (Z.img.dataset.n == Z.n) { const r = big.naturalWidth / Z.img.naturalWidth; Z.img.src = hi; Z.s /= r; Z.fit /= r; zApply(); } }; big.src = hi; };
-  Z.img.dataset.n = Z.n; Z.img.src = lo;
+  const nn = String(Z.n).padStart(2,'0'), hi = `sayfalar_hd/s${nn}.jpg`;
+  Z.img.style.width = ZW + 'px'; Z.img.style.height = ZH + 'px';
+  Z.img.src = `sayfalar/s${nn}.jpg`; Z.img.dataset.n = Z.n;
+  zFit();
+  if (Z.geo) { const g = Z.geo; Z.geo = null; Z.s = g.w / ZW; Z.x = g.x; Z.y = g.y; if (Z.pin) { Z.pin.s0 = Z.s; Z.pin.x0 = Z.x; Z.pin.y0 = Z.y; } zApply(); }
+  const big = new Image(); big.onload = () => { if (Z.img.dataset.n == Z.n) Z.img.src = hi; }; big.src = hi;
   const zx = document.getElementById('zx'); zx.innerHTML = '';
   if (EXTRA[Z.n]) { const b = document.createElement('button'); b.className = 'xbtn'; b.innerHTML = ICON + EXTRA[Z.n][0];
     b.addEventListener('pointerdown', e => e.stopPropagation()); b.onclick = () => openExtra(Z.n); zx.appendChild(b); }
 }
-function zOpen(n) { Z.el.classList.add('on'); zLoad(n); const hn = document.getElementById('zhint'); hn.style.opacity = 1; setTimeout(() => hn.style.opacity = 0, 2500); }
+function zOpen(n, geo) { Z.el.classList.add('on'); Z.geo = geo || null; zLoad(n); }
 function zClose() { Z.el.classList.remove('on'); }
 function visibleLeft() { const i = pf.getCurrentPageIndex(); return i + 1; }
-document.getElementById('zm').onclick = () => zOpen(visibleLeft());
 document.getElementById('zclose').onclick = zClose;
 document.getElementById('zprev').onclick = () => zLoad(Z.n - 1);
 document.getElementById('znext').onclick = () => zLoad(Z.n + 1);
-document.getElementById('zin').onclick = () => zAt(Z.s * 1.6, innerWidth / 2, innerHeight / 2);
-document.getElementById('zout').onclick = () => zAt(Z.s / 1.6, innerWidth / 2, innerHeight / 2);
 Z.stage.addEventListener('wheel', e => { e.preventDefault(); zAt(Z.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY); }, { passive: false });
 const P = new Map(); let pinch = null, lastTap = 0;
 Z.stage.addEventListener('pointerdown', e => { Z.stage.setPointerCapture(e.pointerId); P.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -231,15 +228,39 @@ Z.stage.addEventListener('pointerdown', e => { Z.stage.setPointerCapture(e.point
 Z.stage.addEventListener('pointermove', e => { if (!P.has(e.pointerId)) return; const prev = P.get(e.pointerId); P.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (P.size === 2 && pinch) { const [a, b] = [...P.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); zAt(pinch.s * d / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2); }
   else if (P.size === 1) { Z.x += e.clientX - prev.x; Z.y += e.clientY - prev.y; zClamp(); zApply(); } });
-['pointerup', 'pointercancel'].forEach(ev => Z.stage.addEventListener(ev, e => { P.delete(e.pointerId); if (P.size < 2) pinch = null; }));
-window.addEventListener('resize', () => { if (Z.el.classList.contains('on')) zFit(); });
-// dergide sayfaya çift dokununca büyüt
-let bookTap = 0;
-document.getElementById('book').addEventListener('pointerup', e => {
-  const t = Date.now(); if (t - bookTap < 320) {
-    const r = document.getElementById('book').getBoundingClientRect(); const i = pf.getCurrentPageIndex();
-    const right = pf.getOrientation() === 'landscape' && i > 0 && e.clientX > r.left + r.width / 2;
-    zOpen(right ? i + 2 : i + 1); bookTap = 0; } else bookTap = t; }, true);
+['pointerup', 'pointercancel'].forEach(ev => Z.stage.addEventListener(ev, e => { P.delete(e.pointerId); if (P.size < 2 && pinch) { pinch = null; zSettle(); } }));
+let zWH = innerWidth + 'x' + innerHeight;
+window.addEventListener('resize', () => { const k = innerWidth + 'x' + innerHeight; if (k === zWH) return; zWH = k; if (Z.el.classList.contains('on')) zFit(); });
+// dergide iki parmakla büyüt: sayfa aynı yerden büyümeye başlar
+function pageGeo(cx) {
+  const r = document.getElementById('book').getBoundingClientRect(); const i = pf.getCurrentPageIndex();
+  const land = pf.getOrientation() === 'landscape'; const pw = land ? r.width / 2 : r.width;
+  let n = i + 1, x = r.left;
+  if (land) { if (i === 0) { x = r.left + pw; } else if (cx > r.left + pw) { n = i + 2; x = r.left + pw; } }
+  if (land && i === 0) n = 1;
+  return { n: Math.min(n, N), x, y: r.top, w: pw };
+}
+const mid = t => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2, d: Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) });
+const blk = e => { if (Z.pin) { e.stopPropagation(); if (e.cancelable) e.preventDefault(); } };
+window.addEventListener('touchstart', e => {
+  if (Z.el.classList.contains('on') || e.touches.length !== 2 || !document.getElementById('book-wrap').contains(e.target)) return;
+  e.stopPropagation(); if (e.cancelable) e.preventDefault();
+  const m = mid(e.touches), g = pageGeo(m.x);
+  Z.pin = { m, s0: 0, x0: g.x, y0: g.y, cur: pf.getCurrentPageIndex() };
+  zOpen(g.n, g);
+}, { capture: true, passive: false });
+window.addEventListener('touchmove', e => {
+  if (!Z.pin) return; blk(e);
+  if (e.touches.length < 2 || !Z.pin.s0) return;
+  const m = mid(e.touches), k = m.d / Z.pin.m.d, ns = Z.pin.s0 * k;
+  Z.s = ns; Z.x = m.x - (Z.pin.m.x - Z.pin.x0) * k; Z.y = m.y - (Z.pin.m.y - Z.pin.y0) * k; zApply();
+}, { capture: true, passive: false });
+['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => {
+  if (!Z.pin) return;
+  if (e.touches.length === 0) { const c = Z.pin.cur; Z.pin = null; zSettle(); [30, 400, 900].forEach(t => setTimeout(() => { if (pf.getCurrentPageIndex() !== c) pf.turnToPage(c); upd(); }, t)); }
+}, { capture: true, passive: false }));
+// küçültünce dergiye geri dön
+function zSettle() { if (Z.s <= Z.fit * 1.05) zClose(); else { zClamp(); zApply(); } }
 prev.onclick = () => pf.flipPrev(); next.onclick = () => pf.flipNext();
 document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') pf.flipPrev(); if (e.key === 'ArrowRight') pf.flipNext(); if (e.key === 'Escape') { closeExtra(); zClose(); } });
 // QR bağlantısı: .../bulut/#s5 → 5. sayfa açılır
