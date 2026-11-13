@@ -86,7 +86,7 @@ function cevap(el, which) {
 }
 
 // ---------- Servis (Google Apps Script) ----------
-const SERVIS = '';   // web uygulaması adresi gelince buraya yazılacak
+const SERVIS = 'https://script.google.com/macros/s/AKfycbxSTdCiB7F_x7b2nBfbUV8wJ-ZskhRQORiWWqHuy4w5uXkuiZSYcj1rbKjwQbLGxNXBlQ/exec';   // web uygulaması adresi gelince buraya yazılacak
 async function gonder(veri) {
   if (!SERVIS) return null;
   try { const r = await fetch(SERVIS, { method: 'POST', body: JSON.stringify(veri) }); return await r.json(); }
@@ -130,10 +130,98 @@ function omu(el) {
   });
 }
 
+// ---------- ortak: ad + sınıf alanları ----------
+const kimlik = () => `<div class="frm2"><label>Adın ve soyadın · Атың<input name="ad" maxlength="60" required autocomplete="name"></label>
+  <label>Sınıfın · Классың<input name="sinif" maxlength="10" placeholder="8-A" required></label></div>`;
+const durum = (el, t, ok) => { el.textContent = t; el.className = 'st ' + (ok === true ? 'good' : ok === false ? 'bad' : ''); };
+
+// ---------- fotoğraf gönderme (orijinal boyut) ----------
+function fotoForm(el, konular, baslik) {
+  const f = h(`<form class="frm"><div class="fh">${baslik}</div>${kimlik()}
+    <label>Konu · Тема<select name="konu">${konular.map(k => `<option>${k}</option>`).join('')}</select></label>
+    <label class="file">Fotoğraf seç · Сүрөт танда<input name="dosya" type="file" accept="image/*" required></label>
+    <button type="submit">Gönder · Жөнөт</button><div class="pg"><i></i></div><div class="st"></div></form>`).firstChild;
+  const st = f.querySelector('.st'), pg = f.querySelector('.pg'), bar = pg.querySelector('i');
+  f.onsubmit = e => {
+    e.preventDefault();
+    const file = f.dosya.files[0]; if (!file) return;
+    if (!SERVIS) return durum(st, 'Gönderme şu an kapalı.', false);
+    if (file.size > 35e6) return durum(st, 'Fotoğraf çok büyük (35 MB üstü).', false);
+    const btn = f.querySelector('button'); btn.disabled = true; durum(st, 'Hazırlanıyor…');
+    const rd = new FileReader();
+    rd.onload = () => {
+      const veri = rd.result.split(',')[1];
+      const x = new XMLHttpRequest(); x.open('POST', SERVIS);
+      x.upload.onprogress = ev => { if (ev.lengthComputable) { pg.style.display = 'block'; bar.style.width = (100 * ev.loaded / ev.total) + '%'; durum(st, 'Yükleniyor… %' + Math.round(100 * ev.loaded / ev.total)); } };
+      x.onload = () => { btn.disabled = false; let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {}
+        if (r.ok) { durum(st, 'Teşekkürler! Fotoğrafın bize ulaştı. · Рахмат!', true); f.reset(); bar.style.width = '0'; pg.style.display = 'none'; }
+        else durum(st, 'Bir sorun oldu, tekrar dene.', false); };
+      x.onerror = () => { btn.disabled = false; durum(st, 'İnternet bağlantını kontrol et, tekrar dene.', false); };
+      x.send(JSON.stringify({ tur: 'foto', ad: f.ad.value, sinif: f.sinif.value, konu: f.konu.value, dosya: file.name, mime: file.type, veri }));
+    };
+    rd.readAsDataURL(file);
+  };
+  el.appendChild(f);
+}
+
+// ---------- rota anketi ----------
+const ROTALAR = ['Kapadokya', 'Efes', 'Nemrut Dağı', 'İstanbul'];
+function rota(el) {
+  const f = h(`<div class="frm"><div class="fh">Bulut'un yeni rotasını sen seç! <span>Булуттун жаңы жолун сен танда!</span></div><div class="rts2"></div><div class="st"></div></div>`).firstChild;
+  const box = f.querySelector('.rts2'), st = f.querySelector('.st');
+  const goster = (sec, sonuc) => {
+    const top = Object.values(sonuc || {}).reduce((a, b) => a + b, 0) || 1;
+    box.querySelectorAll('button').forEach(b => { b.disabled = true; b.classList.toggle('sel', b.dataset.v === sec);
+      if (sonuc) b.querySelector('small').textContent = '%' + Math.round(100 * (sonuc[b.dataset.v] || 0) / top); });
+    durum(st, 'Oyun alındı! En çok oy alan yer gelecek sayıda. · Добушуң кабыл алынды!', true);
+  };
+  ROTALAR.forEach(r => { const b = h(`<button data-v="${r}">${r}<small></small></button>`).firstChild;
+    b.onclick = async () => { hafiza.yaz('rota', r); goster(r); const x = await gonder({ tur: 'oy', soru: 'rota', secim: r }); if (x && x.sonuc) goster(r, x.sonuc); };
+    box.appendChild(b); });
+  const onceki = hafiza.al('rota');
+  if (onceki) { goster(onceki); if (SERVIS) fetch(SERVIS + '?soru=rota').then(r => r.json()).then(r => r.sonuc && goster(onceki, r.sonuc)).catch(() => {}); }
+  el.appendChild(f);
+}
+
+// ---------- BULUT Avı ----------
+function avi(el) {
+  const f = h(`<form class="frm"><div class="fh">BULUT Avı · Gizli sözü yaz! <span>Жашыруун сөздү жаз!</span></div>
+    <p class="hint2">Dergideki mavi daktilo harfleri sırayla yaz. Sözün devamı: "…, ulaşamasan da göğe yükselirsin!"</p>
+    ${kimlik()}<label>Gizli söz · Жашыруун сөз<input name="cevap" maxlength="80" required autocomplete="off" autocapitalize="characters"></label>
+    <button type="submit">Çekilişe katıl · Катыш</button><div class="st"></div></form>`).firstChild;
+  const st = f.querySelector('.st');
+  if (hafiza.al('avi')) durum(st, 'Cevabını daha önce gönderdin. Çekilişte bol şans!', true);
+  f.onsubmit = async e => { e.preventDefault(); const btn = f.querySelector('button'); btn.disabled = true; durum(st, 'Gönderiliyor…');
+    const r = await gonder({ tur: 'avi', ad: f.ad.value, sinif: f.sinif.value, cevap: f.cevap.value });
+    btn.disabled = false;
+    if (r && r.ok) { hafiza.yaz('avi', '1'); durum(st, 'Cevabın alındı! Çekilişte bol şans! · Ийгилик!', true); f.reset(); }
+    else durum(st, 'Bir sorun oldu, tekrar dene.', false); };
+  el.appendChild(f);
+}
+
+// ---------- Söz Sende ----------
+const SAHNE = ['1 · Zil çaldı!', '2 · Yeni arkadaş', '3 · Kantinde', '4 · Eyvah!'];
+function soz(el) {
+  const f = h(`<form class="frm"><div class="fh">Balonlara sen yaz! <span>Шарчаларга сен жаз!</span></div>
+    <p class="hint2">Sence ne dediler? Her resim için bir cümle yaz.</p>${kimlik()}
+    ${SAHNE.map((s, i) => `<label>${s}<input name="b${i}" maxlength="120"></label>`).join('')}
+    <button type="submit">Gönder · Жөнөт</button><div class="st"></div><p class="hint2">En güzel balonlar gelecek sayıda!</p></form>`).firstChild;
+  const st = f.querySelector('.st');
+  f.onsubmit = async e => { e.preventDefault(); const btn = f.querySelector('button'); btn.disabled = true; durum(st, 'Gönderiliyor…');
+    const r = await gonder({ tur: 'soz', ad: f.ad.value, sinif: f.sinif.value, balonlar: [0, 1, 2, 3].map(i => f['b' + i].value) });
+    btn.disabled = false;
+    if (r && r.ok) { durum(st, 'Teşekkürler! Balonların bize ulaştı. · Рахмат!', true); f.reset(); } else durum(st, 'Bir sorun oldu, tekrar dene.', false); };
+  el.appendChild(f);
+  fotoForm(el, ['Söz Sende balonlarım'], 'Kâğıda yazdıysan fotoğrafını gönder! <span>Сүрөтүн жөнөт!</span>');
+}
+
 window.BULUT_EXTRA = {
   8: omu,
   5: kulak,
   17: (el) => { cevap(el, 17); el.append(h(`<p class="soon2">Kar leoparı videoları yakında! · Видеолор жакында!</p>`)); },
-  18: (el) => { cevap(el, 18); el.append(h(`<p class="soon2">Rota anketi yakında! · Сурамжылоо жакында!</p>`)); },
+  18: (el) => { cevap(el, 18); rota(el); },
+  9: soz,
+  15: (el) => fotoForm(el, ['Bulutta hayvan', 'Gökyüzü / bulut', 'Kış'], 'Bulutta bir hayvan gördün mü? Fotoğrafını gönder! <span>Сүрөтүңдү жөнөт!</span>'),
+  20: (el) => { avi(el); rota(el); fotoForm(el, ['Kış', 'Gökyüzü / bulut', 'Bulutta hayvan'], 'Gökyüzünü bize gönder! <span>Асманды бизге жөнөт!</span>'); },
   19: bilgi,
 };
