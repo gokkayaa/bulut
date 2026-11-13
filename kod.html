@@ -78,7 +78,8 @@ function doPost(e) {
 
 // Oy sonuçları: ?soru=cay  → {secim: sayı, ...}
 function sonuc_(soru) {
-  const sh = sayfa_(&#x27;oy&#x27;);
+  const sh = SpreadsheetApp.openById(TABLO_ID).getSheetByName(SAYFALAR.oy[0]);
+  if (!sh) return {};
   const n = sh.getLastRow();
   const say = {};
   if (n &gt; 1) sh.getRange(2, 2, n - 1, 2).getValues().forEach(([s, c]) =&gt; { if (s === soru) say[c] = (say[c] || 0) + 1; });
