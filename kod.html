@@ -1,0 +1,99 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>BULUT kodu</title>
+<style>body{font-family:system-ui,sans-serif;margin:0;padding:16px;background:#0f1d3a;color:#fff}button{font-size:20px;font-weight:800;padding:16px 28px;border:none;border-radius:14px;background:#ffd23f;color:#14264a;width:100%;max-width:420px}
+#ok{margin:12px 0;font-size:18px;font-weight:700;min-height:24px}textarea{width:100%;height:60vh;font-family:monospace;font-size:12px;border-radius:10px;padding:8px;box-sizing:border-box}</style></head><body>
+<h2>Dijital BULUT · Apps Script kodu</h2>
+<button id="b">Kodu kopyala</button><div id="ok"></div>
+<textarea id="t" readonly>/**
+ * Dijital BULUT — cevap toplama servisi
+ * Bu kod &quot;BULUT Cevaplar&quot; Google E-Tablosuna bağlı çalışır.
+ * Kurulum: E-Tablo &gt; Uzantılar &gt; Apps Script &gt; bu kodu yapıştır &gt; Dağıt &gt; Yeni dağıtım &gt; Web uygulaması
+ *   Yürüten: Ben · Erişimi olan: Herkes
+ */
+
+const FOTO_KLASOR = &#x27;BULUT Fotoğrafları&#x27;;
+
+const SAYFALAR = {
+  oy:   [&#x27;Oylar&#x27;,        [&#x27;Tarih&#x27;, &#x27;Soru&#x27;, &#x27;Seçim&#x27;]],
+  avi:  [&#x27;BULUT Avı&#x27;,    [&#x27;Tarih&#x27;, &#x27;Ad Soyad&#x27;, &#x27;Sınıf&#x27;, &#x27;Cevap&#x27;, &#x27;Doğru mu?&#x27;]],
+  soz:  [&#x27;Söz Sende&#x27;,    [&#x27;Tarih&#x27;, &#x27;Ad Soyad&#x27;, &#x27;Sınıf&#x27;, &#x27;Balon 1&#x27;, &#x27;Balon 2&#x27;, &#x27;Balon 3&#x27;, &#x27;Balon 4&#x27;]],
+  foto: [&#x27;Fotoğraflar&#x27;,  [&#x27;Tarih&#x27;, &#x27;Ad Soyad&#x27;, &#x27;Sınıf&#x27;, &#x27;Tür&#x27;, &#x27;Dosya&#x27;, &#x27;Bağlantı&#x27;]],
+};
+const DOGRU_CEVAP = &#x27;HEDEFİNBULUTLAROLSUN&#x27;;
+
+function sayfa_(tur) {
+  const [ad, basliklar] = SAYFALAR[tur];
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(ad);
+  if (!sh) {
+    sh = ss.insertSheet(ad);
+    sh.appendRow(basliklar);
+    sh.getRange(1, 1, 1, basliklar.length).setFontWeight(&#x27;bold&#x27;).setBackground(&#x27;#00adb9&#x27;).setFontColor(&#x27;#ffffff&#x27;);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+function temiz_(s, n) { return String(s || &#x27;&#x27;).replace(/[&lt;&gt;]/g, &#x27;&#x27;).trim().slice(0, n || 200); }
+function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = JSON.parse(e.postData.contents);
+    const now = new Date();
+    if (d.tur === &#x27;oy&#x27;) {
+      sayfa_(&#x27;oy&#x27;).appendRow([now, temiz_(d.soru, 40), temiz_(d.secim, 60)]);
+      return json_({ ok: true, sonuc: sonuc_(d.soru) });
+    }
+    if (d.tur === &#x27;avi&#x27;) {
+      const cevap = temiz_(d.cevap, 80);
+      const norm = cevap.toLocaleUpperCase(&#x27;tr-TR&#x27;).replace(/[^A-ZÇĞİÖŞÜ]/g, &#x27;&#x27;);
+      sayfa_(&#x27;avi&#x27;).appendRow([now, temiz_(d.ad, 60), temiz_(d.sinif, 10), cevap, norm === DOGRU_CEVAP ? &#x27;EVET&#x27; : &#x27;hayır&#x27;]);
+      return json_({ ok: true });
+    }
+    if (d.tur === &#x27;soz&#x27;) {
+      const b = (d.balonlar || []).map(x =&gt; temiz_(x, 120));
+      sayfa_(&#x27;soz&#x27;).appendRow([now, temiz_(d.ad, 60), temiz_(d.sinif, 10), b[0] || &#x27;&#x27;, b[1] || &#x27;&#x27;, b[2] || &#x27;&#x27;, b[3] || &#x27;&#x27;]);
+      return json_({ ok: true });
+    }
+    if (d.tur === &#x27;foto&#x27;) {
+      const it = DriveApp.getFoldersByName(FOTO_KLASOR);
+      const klasor = it.hasNext() ? it.next() : DriveApp.createFolder(FOTO_KLASOR);
+      const ad = temiz_(d.ad, 60), sinif = temiz_(d.sinif, 10);
+      const dosyaAdi = `${Utilities.formatDate(now, &#x27;Asia/Bishkek&#x27;, &#x27;yyyy-MM-dd_HH-mm&#x27;)}_${sinif}_${ad}_${temiz_(d.dosya, 80)}`.replace(/[\\/:*?&quot;&lt;&gt;|]/g, &#x27;&#x27;);
+      const blob = Utilities.newBlob(Utilities.base64Decode(d.veri), temiz_(d.mime, 40) || &#x27;image/jpeg&#x27;, dosyaAdi);
+      const f = klasor.createFile(blob);   // orijinal boyutunda kaydedilir
+      sayfa_(&#x27;foto&#x27;).appendRow([now, ad, sinif, temiz_(d.konu, 40), dosyaAdi, f.getUrl()]);
+      return json_({ ok: true });
+    }
+    return json_({ ok: false, hata: &#x27;bilinmeyen tür&#x27; });
+  } catch (err) {
+    return json_({ ok: false, hata: String(err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Oy sonuçları: ?soru=cay  → {secim: sayı, ...}
+function sonuc_(soru) {
+  const sh = sayfa_(&#x27;oy&#x27;);
+  const n = sh.getLastRow();
+  const say = {};
+  if (n &gt; 1) sh.getRange(2, 2, n - 1, 2).getValues().forEach(([s, c]) =&gt; { if (s === soru) say[c] = (say[c] || 0) + 1; });
+  return say;
+}
+
+function doGet(e) {
+  const soru = e &amp;&amp; e.parameter &amp;&amp; e.parameter.soru;
+  if (soru) return json_({ ok: true, sonuc: sonuc_(soru) });
+  return json_({ ok: true, mesaj: &#x27;Dijital BULUT servisi çalışıyor.&#x27; });
+}
+</textarea>
+<script>
+const t=document.getElementById('t'),ok=document.getElementById('ok');
+document.getElementById('b').onclick=async()=>{
+  try{await navigator.clipboard.writeText(t.value);}catch(e){t.focus();t.select();t.setSelectionRange(0,t.value.length);document.execCommand('copy');}
+  ok.textContent='Kopyalandı! Şimdi Apps Script editörüne yapıştır. ('+t.value.split('\n').length+' satır)';
+};
+</script></body></html>
