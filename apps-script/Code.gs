@@ -81,6 +81,16 @@ function sonuc_(soru) {
 }
 
 function doGet(e) {
+  const sayac = e && e.parameter && e.parameter.sayac;
+  if (sayac !== undefined) {
+    const lock = LockService.getScriptLock(); lock.waitLock(10000);
+    try {
+      const pr = PropertiesService.getScriptProperties();
+      let n = Number(pr.getProperty('ziyaret') || 0);
+      if (sayac === '1') { n++; pr.setProperty('ziyaret', String(n)); }
+      return json_({ ok: true, ziyaret: n });
+    } finally { lock.releaseLock(); }
+  }
   const soru = e && e.parameter && e.parameter.soru;
   if (soru) return json_({ ok: true, sonuc: sonuc_(soru) });
   return json_({ ok: true, mesaj: 'Dijital BULUT servisi çalışıyor.' });

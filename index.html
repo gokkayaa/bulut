@@ -91,6 +91,12 @@ nav button:disabled{opacity:.35;cursor:default}
 #zhint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(20,38,74,.85);padding:6px 14px;border-radius:16px;font-size:12.5px;font-weight:800;transition:opacity .6s}
 nav button svg{display:block;margin:auto}
 @media(max-width:480px){nav{gap:9px} nav button{width:42px;height:42px;font-size:18px} #pno{min-width:62px;font-size:13.5px} .hint{font-size:11px} #zbar{gap:5px;padding:6px 8px} #zbar button{width:40px;height:40px} #zno{min-width:46px;font-size:12.5px}}
+.vids{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.vcard{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--navy);border:2px solid #e3eef3;border-radius:14px;padding:10px 12px;background:#f8fcfd}
+.vcard .play{width:42px;height:42px;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;padding-left:3px}
+.vcard b{display:block;font-weight:900;font-size:16px} .vcard small{font-weight:700;font-size:12px;color:#6b7a90}
+#sayac{display:block;margin-top:4px;font-size:12px;opacity:.9}
+#ses.off{opacity:.45}
 footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12px 14px}
 </style>
 </head>
@@ -105,13 +111,14 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
     <button id="prev" aria-label="Önceki sayfa">‹</button>
     <div id="pno">1 / 20</div>
     <button id="next" aria-label="Sonraki sayfa">›</button>
+    <button id="ses" aria-label="Sayfa sesi" title="Sayfa sesi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path id="ses-w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
     <button id="tek" aria-label="Tek sayfa / çift sayfa" title="Tek sayfa / çift sayfa"><svg width="22" height="20" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2.4"><rect id="tek-ico" x="2" y="2" width="9" height="16" rx="1.5"/><rect x="13" y="2" width="9" height="16" rx="1.5"/></svg></button>
     <button id="fs" aria-label="Tam ekran" title="Tam ekran"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </nav>
   <div id="xs"></div>
   <div class="hint">Sayfayı çevirmek için köşesinden tut. Büyütmek için iki parmağını aç.</div>
 </main>
-<footer>BULUT · Cengiz Aytmatov Lisesi Gazete ve Dergi Kulübü</footer>
+<footer>BULUT · Cengiz Aytmatov Lisesi Gazete ve Dergi Kulübü<span id="sayac"></span></footer>
 
 <div id="zoom" aria-modal="true" role="dialog">
   <div id="zstage"><img id="zimg" alt=""></div>
@@ -129,7 +136,7 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
 </div></div>
 
 <script src="lib/page-flip.browser.js"></script>
-<script src="ekstralar.js?v=20261114"></script>
+<script src="ekstralar.js?v=20261114b"></script>
 <script>
 const N = 20;
 // Sayfa ekstraları: sayfa no → [buton yazısı, başlık, kırgızca, açıklama]
@@ -179,6 +186,33 @@ function upd() {
     b.innerHTML = ICON + EXTRA[v][0] + ` <small style="opacity:.6">· s.${v}</small>`; b.onclick = () => openExtra(v); xs.appendChild(b); });
 }
 pf.on('flip', upd); pf.on('changeOrientation', upd);
+// --- sayfa sesi ---
+let SES = true; try { SES = localStorage.getItem('bulut_ses') !== '0'; } catch (e) {}
+let AC = null, sonSes = 0;
+function hisirti() {
+  if (!SES || Date.now() - sonSes < 400) return; sonSes = Date.now();
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    const d = 0.38, n = Math.floor(AC.sampleRate * d), buf = AC.createBuffer(1, n, AC.sampleRate), x = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) { const t = i / n; x[i] = (Math.random() * 2 - 1) * Math.pow(Math.sin(Math.PI * Math.min(1, t * 1.25)), 1.6) * (0.55 + 0.45 * Math.random()); }
+    const src = AC.createBufferSource(); src.buffer = buf;
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.9;
+    bp.frequency.setValueAtTime(1400, AC.currentTime); bp.frequency.linearRampToValueAtTime(4200, AC.currentTime + d);
+    const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
+    const g = AC.createGain(); g.gain.value = 0.32;
+    src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(AC.destination); src.start();
+  } catch (e) {}
+}
+pf.on('changeState', e => { if (e.data === 'flipping') hisirti(); });
+const sesBtn = document.getElementById('ses');
+const sesIco = () => { sesBtn.classList.toggle('off', !SES); document.getElementById('ses-w').style.display = SES ? '' : 'none'; };
+sesIco(); sesBtn.onclick = () => { SES = !SES; try { localStorage.setItem('bulut_ses', SES ? '1' : '0'); } catch (e) {} sesIco(); if (SES) { sonSes = 0; hisirti(); } };
+// --- ziyaretçi sayacı ---
+(function () {
+  const U = 'https://script.google.com/macros/s/AKfycbxSTdCiB7F_x7b2nBfbUV8wJ-ZskhRQORiWWqHuy4w5uXkuiZSYcj1rbKjwQbLGxNXBlQ/exec';
+  let yeni = '1'; try { if (sessionStorage.getItem('bulut_say')) yeni = '0'; sessionStorage.setItem('bulut_say', '1'); } catch (e) {}
+  fetch(U + '?sayac=' + yeni).then(r => r.json()).then(r => { if (r && r.ziyaret) document.getElementById('sayac').textContent = r.ziyaret.toLocaleString('tr-TR') + ' ziyaret · ' + r.ziyaret.toLocaleString('tr-TR') + ' жолу көрүлдү'; }).catch(() => {});
+})();
 document.getElementById('fs').onclick = () => {
   const el = document.documentElement, on = document.fullscreenElement || document.webkitFullscreenElement;
   if (on) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
@@ -265,8 +299,8 @@ function zSettle() { if (Z.s <= Z.fit * 1.05) zClose(); else { zClamp(); zApply(
 prev.onclick = () => pf.flipPrev(); next.onclick = () => pf.flipNext();
 document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') pf.flipPrev(); if (e.key === 'ArrowRight') pf.flipNext(); if (e.key === 'Escape') { closeExtra(); zClose(); } });
 // QR bağlantısı: .../bulut/#s5 → 5. sayfa açılır
-const m = location.hash.match(/^#s(\d+)/);
-if (m) { const t = Math.min(Math.max(+m[1], 1), N) - 1; setTimeout(() => { pf.turnToPage(t); upd(); if (EXTRA[t + 1] && /x$/.test(location.hash)) openExtra(t + 1); }, 50); } else upd();
+const m = location.hash.match(/^#s(\d+)/), autoX = /x$/.test(location.hash);
+if (m) { const t = Math.min(Math.max(+m[1], 1), N) - 1; setTimeout(() => { pf.turnToPage(t); upd(); if (EXTRA[t + 1] && autoX) openExtra(t + 1); }, 50); } else upd();
 const modal = document.getElementById('modal');
 function openExtra(i) {
   if (EXTRA[i][4]) { location.href = EXTRA[i][4]; return; }

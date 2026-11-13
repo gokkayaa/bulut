@@ -215,15 +215,29 @@ function soz(el) {
   fotoForm(el, ['Söz Sende balonlarım'], 'Kâğıda yazdıysan fotoğrafını gönder! <span>Сүрөтүн жөнөт!</span>');
 }
 
+// ---------- 17. sayfa: videolar ----------
+const VIDEO = [
+  ['Kar leoparı', 'Илбирс', 'Snow Leopard Trust', 'https://snowleopard.org/photos-and-videos/videos', '#5d8a6a'],
+  ['Anadolu parsı', 'Анадолу илбирси', 'TRT Haber', 'https://www.trthaber.com/videolar/anadolu-parsi-yeniden-goruntulendi-67949.html', '#c2611f'],
+  ['Kangal köpeği', 'Кангал ити', 'TRT Haber', 'https://www.trthaber.com/videolar/kangal-kopegi-bebudan-kuzulara-anne-sefkati-61136.html', '#8a6a3a'],
+  ['Caretta caretta', 'Деңиз ташбакасы', 'DHA', 'https://www.dha.com.tr/video/akdenizde-yavru-caretta-heyecani-video-2916542', '#2f6fc1'],
+];
+function videolar(el) {
+  el.append(h(`<p class="lead">Videoları izle! <span>Видеолорду көр!</span></p><div class="vids"></div>`));
+  const box = el.querySelector('.vids');
+  VIDEO.forEach(([t, k, src, url, c]) => box.append(h(`<a class="vcard" href="${url}" target="_blank" rel="noopener" style="--c:${c}">
+    <span class="play">▶</span><span class="vt"><b>${t}</b><small>${k} · ${src}</small></span></a>`)));
+}
+
 window.BULUT_EXTRA = {
   12: () => { location.href = 'lezzet.html'; },
   13: () => { location.href = 'lezzet.html'; },
   8: omu,
   5: kulak,
-  17: (el) => { cevap(el, 17); el.append(h(`<p class="soon2">Kar leoparı videoları yakında! · Видеолор жакында!</p>`)); },
+  17: (el) => { videolar(el); cevap(el, 17); },
   18: (el) => { cevap(el, 18); rota(el); },
   9: soz,
-  15: (el) => fotoForm(el, ['Bulutta hayvan', 'Gökyüzü / bulut', 'Kış'], 'Bulutta bir hayvan gördün mü? Fotoğrafını gönder! <span>Сүрөтүңдү жөнөт!</span>'),
+  15: (el) => fotoForm(el, ['Gökyüzü', 'Bulut', 'Kış'], 'Gökyüzünün ya da bir bulutun fotoğrafını çek, bize gönder! <span>Асмандын же булуттун сүрөтүн жөнөт!</span>'),
   20: (el) => { avi(el); rota(el); fotoForm(el, ['Kış', 'Gökyüzü / bulut', 'Bulutta hayvan'], 'Gökyüzünü bize gönder! <span>Асманды бизге жөнөт!</span>'); },
   19: bilgi,
 };

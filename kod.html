@@ -86,6 +86,16 @@ function sonuc_(soru) {
 }
 
 function doGet(e) {
+  const sayac = e &amp;&amp; e.parameter &amp;&amp; e.parameter.sayac;
+  if (sayac !== undefined) {
+    const lock = LockService.getScriptLock(); lock.waitLock(10000);
+    try {
+      const pr = PropertiesService.getScriptProperties();
+      let n = Number(pr.getProperty(&#x27;ziyaret&#x27;) || 0);
+      if (sayac === &#x27;1&#x27;) { n++; pr.setProperty(&#x27;ziyaret&#x27;, String(n)); }
+      return json_({ ok: true, ziyaret: n });
+    } finally { lock.releaseLock(); }
+  }
   const soru = e &amp;&amp; e.parameter &amp;&amp; e.parameter.soru;
   if (soru) return json_({ ok: true, sonuc: sonuc_(soru) });
   return json_({ ok: true, mesaj: &#x27;Dijital BULUT servisi çalışıyor.&#x27; });
