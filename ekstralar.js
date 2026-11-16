@@ -186,7 +186,7 @@ function rota(el) {
 
 // ---------- BULUT Avı ----------
 function avi(el) {
-  const f = h(`<form class="frm"><div class="fh">BULUT Avı · Gizli sözü yaz! <span>Жашыруун сөздү жаз!</span></div>
+  const f = h(`<form class="frm"><div class="fh">Sözü tamamladın mı? Buraya yaz! <span>Жашыруун сөздү жаз!</span></div>
     <p class="hint2">Dergideki mavi daktilo harfleri sırayla yaz. Sözün devamı: "…, ulaşamasan da göğe yükselirsin!"</p>
     ${kimlik()}<label>Gizli söz · Жашыруун сөз<input name="cevap" maxlength="80" required autocomplete="off" autocapitalize="characters"></label>
     <button type="submit">Çekilişe katıl · Катыш</button><div class="st"></div></form>`).firstChild;
