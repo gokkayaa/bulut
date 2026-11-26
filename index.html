@@ -195,6 +195,8 @@ pf.loadFromHTML(document.querySelectorAll('#book .page'));
 const pno = document.getElementById('pno'), prev = document.getElementById('prev'), next = document.getElementById('next');
 function upd() {
   const i = pf.getCurrentPageIndex();
+  // açık sayfa ve yanındakiler hemen yüklensin (QR ile gelen öğrenci boş sayfa görmesin)
+  document.querySelectorAll('#book img').forEach((im, k) => { if (k >= i - 1 && k <= i + 3 && im.loading !== 'eager') im.loading = 'eager'; });
   const orient = pf.getOrientation();
   pno.textContent = (orient === 'landscape' && i > 0 && i < N - 1) ? `${i + 1}–${Math.min(i + 2, N)} / ${N}` : `${i + 1} / ${N}`;
   prev.disabled = i === 0; next.disabled = i >= N - 1;
