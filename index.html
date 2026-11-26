@@ -90,7 +90,15 @@ nav button:disabled{opacity:.35;cursor:default}
 #zx .xbtn{font-size:16px;padding:11px 18px 11px 14px}
 #zhint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(20,38,74,.85);padding:6px 14px;border-radius:16px;font-size:12.5px;font-weight:800;transition:opacity .6s}
 nav button svg{display:block;margin:auto}
+@media(max-width:700px){
+ header{padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))} .logo{font-size:24px} .logo small{font-size:10.5px} .issue{font-size:10.5px}
+ #tek{display:none} main{padding:6px 4px 2px} #xs{margin:-2px 0 6px;min-height:46px} .hint{margin-top:0;padding-bottom:8px}
+ .xbtn{font-size:15px;padding:10px 16px 10px 12px}
+}
+.card h2{padding-right:40px}
+.frm2{align-items:end}
 @media(max-width:480px){nav{gap:9px} nav button{width:42px;height:42px;font-size:18px} #pno{min-width:62px;font-size:13.5px} .hint{font-size:11px} #zbar{gap:5px;padding:6px 8px} #zbar button{width:40px;height:40px} #zno{min-width:46px;font-size:12.5px}}
+.aud{display:block;width:100%;margin:12px 0 8px}
 .vids{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .vcard{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--navy);border:2px solid #e3eef3;border-radius:14px;padding:10px 12px;background:#f8fcfd}
 .vcard .play{width:42px;height:42px;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;padding-left:3px}
@@ -116,7 +124,7 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
     <button id="fs" aria-label="Tam ekran" title="Tam ekran"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </nav>
   <div id="xs"></div>
-  <div class="hint">Sayfayı çevirmek için köşesinden tut. Büyütmek için iki parmağını aç.</div>
+  <div class="hint" id="hint">Sayfayı çevirmek için köşesinden tut. Büyütmek için iki parmağını aç.</div>
 </main>
 <footer>BULUT · Cengiz Aytmatov Lisesi Gazete ve Dergi Kulübü<span id="sayac"></span></footer>
 
@@ -136,7 +144,7 @@ footer{text-align:center;font-size:11px;font-weight:700;opacity:.6;padding:0 12p
 </div></div>
 
 <script src="lib/page-flip.browser.js"></script>
-<script src="ekstralar.js?v=20261117"></script>
+<script src="ekstralar.js?v=20261126"></script>
 <script>
 const N = 20;
 // Sayfa ekstraları: sayfa no → [buton yazısı, başlık, kırgızca, açıklama]
@@ -147,11 +155,11 @@ const EXTRA = {
   9:  ['Yaz', 'Söz Sende!', 'Сөз сенде!', 'Balonlara sen yaz, bize gönder.'],
   12: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!', 'lezzet.html'],
   13: ['Oyna', 'Lezzet Turu', 'Даам туру', 'Türkiye haritasında lezzet turuna çık!', 'lezzet.html'],
-  15: ['Galeri', 'Bulutta Bir Hayvan', 'Булуттагы жаныбар', 'Arkadaşlarının bulut fotoğrafları burada.'],
+  15: ['Fotoğraf gönder', 'Bu Bulutta Bir Hayvan Saklanıyor!', 'Бул булутта бир жаныбар жашынып жатат!', 'Gökyüzünün ya da bir bulutun fotoğrafını bize gönder.'],
   17: ['Videolar', 'Dağların Hayaleti', 'Тоолордун арбагы', 'Kar leoparı, Anadolu parsı, kangal ve caretta videoları.'],
   18: ['Keşfet', 'Bulut Yolda', 'Булут жолдо', 'Haritada Bulut ile Kar\'ın yolunu izle. Yeni rotayı sen seç!'],
   19: ['Oyna', 'Bilgi Yağmuru', 'Маалымат жамгыры', 'Şaka olan damlayı bul!'],
-  20: ['Katıl', 'Görüşürüz!', 'Көрүшкөнчө!', 'Gizli sözü yaz, çekilişe katıl. Rotaya oy ver, fotoğrafını gönder!'],
+  20: ['Gönder', 'Görüşürüz!', 'Көрүшкөнчө!', 'Sözü tamamla, bize gönder. Kış ve gökyüzü fotoğraflarını da gönderebilirsin!'],
 };
 const ICON = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.5 20 12 16.6 6.5 20 8 13.4 3 9l6.4-.6z" fill="currentColor"/></svg>';
 const book = document.getElementById('book');
@@ -164,14 +172,25 @@ for (let i = 1; i <= N; i++) {
 }
 // kitabı ekran yüksekliğine sığdır
 let TEK = false; try { TEK = localStorage.getItem('bulut_tek') === '1'; } catch (e) {}
-function fit(){ const avail = window.innerHeight - (document.fullscreenElement || document.webkitFullscreenElement ? 120 : 175); const land = window.innerWidth > 700 && !TEK;
+const YATAY = () => window.innerWidth > 700 && window.innerWidth > window.innerHeight * 1.05;
+function fit(){
+  const fs = document.fullscreenElement || document.webkitFullscreenElement;
+  const hh = (el, def) => { const e = document.querySelector(el); return e && e.offsetParent !== null ? e.getBoundingClientRect().height : def; };
+  // başlık + gezinti + ekstra düğmesi + ipucu ekranda kalsın, dergi kalan yere sığsın
+  const used = (fs ? 0 : hh('header', 60)) + hh('nav', 62) + 56 + (fs ? 0 : hh('.hint', 20)) + 18;
+  const avail = window.innerHeight - used; const land = YATAY() && !TEK;
+  document.getElementById('tek').style.display = YATAY() ? '' : 'none';
   const w = land ? 2 * avail / 1.4143 : avail / 1.4143;
-  document.getElementById('book-wrap').style.maxWidth = Math.max(300, Math.min(1600, w)) + 'px'; }
+  document.getElementById('book-wrap').style.maxWidth = Math.max(300, Math.min(1600, w)) + 'px';
+  if (window.pf) pf.getSettings().minWidth = land ? 280 : Math.max(280, Math.ceil(Math.min(1600, w) / 2) + 4);   // dik ekranda (telefon, dik tablet) hep tek sayfa
+}
+if (matchMedia('(pointer:coarse)').matches) document.getElementById('hint').textContent = 'Sayfayı parmağınla kaydır. Büyütmek için iki parmağını aç.';
 fit(); window.addEventListener('resize', fit, true);
-const pf = new St.PageFlip(book, {
+var pf = new St.PageFlip(book, {
   width: 560, height: 792, size: 'stretch', minWidth: 280, maxWidth: 1400, minHeight: 396, maxHeight: 1980,
   showCover: true, disableFlipByClick: true, maxShadowOpacity: .45, mobileScrollSupport: true, flippingTime: 700, usePortrait: true
 });
+fit();
 pf.loadFromHTML(document.querySelectorAll('#book .page'));
 const pno = document.getElementById('pno'), prev = document.getElementById('prev'), next = document.getElementById('next');
 function upd() {
@@ -301,6 +320,7 @@ document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') pf.flipPr
 // QR bağlantısı: .../bulut/#s5 → 5. sayfa açılır
 const m = location.hash.match(/^#s(\d+)/), autoX = /x$/.test(location.hash);
 if (m) { const t = Math.min(Math.max(+m[1], 1), N) - 1; setTimeout(() => { pf.turnToPage(t); upd(); if (EXTRA[t + 1] && autoX) openExtra(t + 1); }, 50); } else upd();
+window.addEventListener('hashchange', () => { const k = location.hash.match(/^#s(\d+)(x?)$/); if (!k) return; const t = Math.min(Math.max(+k[1], 1), N) - 1; if (t !== pf.getCurrentPageIndex()) { pf.turnToPage(t); upd(); } if (k[2] && EXTRA[t + 1]) openExtra(t + 1); });
 const modal = document.getElementById('modal');
 function openExtra(i) {
   if (EXTRA[i][4]) { location.href = EXTRA[i][4]; return; }
@@ -312,7 +332,7 @@ function openExtra(i) {
   body.innerHTML = ''; if (fn) fn(body);
   modal.classList.add('on'); modal.querySelector('.card').scrollTop = 0;
 }
-function closeExtra() { modal.classList.remove('on'); if (window.speechSynthesis) speechSynthesis.cancel(); }
+function closeExtra() { modal.classList.remove('on'); modal.querySelectorAll('audio,video').forEach(m => m.pause()); if (window.calan) calan.pause(); }
 modal.addEventListener('click', e => { if (e.target === modal || e.target.classList.contains('x')) closeExtra(); });
 </script>
 </body>

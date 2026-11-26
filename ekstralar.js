@@ -1,17 +1,14 @@
 // Dijital BULUT — sayfa ekstraları
 // Her ekstra: bir kapsayıcı (el) alır ve içini doldurur.
 
+// Kelime sesleri: ses/k/<kelime>.mp3 (her cihazda aynı ses)
+const sesAdi = w => w.toLocaleLowerCase('tr-TR').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u').replace(/[^a-z]/g,'');
+var calan = null;
 const say = (txt) => {
-  // Geçici Türkçe seslendirme (cihazın kendi sesi). ElevenLabs kayıtları gelince ses dosyalarıyla değişecek.
-  if (!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(txt.replace(/[!()]/g, ''));
-  u.lang = 'tr-TR'; u.rate = 0.85;
-  const v = speechSynthesis.getVoices().find(v => /^tr/i.test(v.lang));
-  if (v) u.voice = v;
-  speechSynthesis.speak(u);
+  if (calan) { calan.pause(); calan.currentTime = 0; }
+  calan = new Audio('ses/k/' + sesAdi(txt) + '.mp3');
+  calan.play().catch(() => {});
 };
-if ('speechSynthesis' in window) speechSynthesis.getVoices();
 
 const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content; };
 
@@ -37,6 +34,13 @@ function kulak(el) {
     });
     el.appendChild(g);
   });
+}
+
+// ---------- 4. sayfa: Aytmatov'un İzinde ----------
+function hikaye(el) {
+  el.append(h(`<p class="lead">Cengiz Aytmatov'un çocukluk hikâyesini dinle! <span>Айтматовдун балалыгы жөнүндө ук!</span></p>
+    <audio class="aud" src="ses/aytmatov.mp3" controls preload="metadata"></audio>
+    <p class="hint2">Dinlerken dergideki sayfayı da takip edebilirsin. Yaklaşık 2 dakika.</p>`));
 }
 
 // ---------- 19. sayfa: Bilgi Yağmuru ----------
@@ -186,16 +190,16 @@ function rota(el) {
 
 // ---------- BULUT Avı ----------
 function avi(el) {
-  const f = h(`<form class="frm"><div class="fh">Sözü tamamladın mı? Buraya yaz! <span>Жашыруун сөздү жаз!</span></div>
-    <p class="hint2">Dergideki mavi daktilo harfleri sırayla yaz. Sözün devamı: "…, ulaşamasan da göğe yükselirsin!"</p>
-    ${kimlik()}<label>Gizli söz · Жашыруун сөз<input name="cevap" maxlength="80" required autocomplete="off" autocapitalize="characters"></label>
-    <button type="submit">Çekilişe katıl · Катыш</button><div class="st"></div></form>`).firstChild;
+  const f = h(`<form class="frm"><div class="fh">Sözü tamamladın mı? Buraya yaz! <span>Сөздү бул жерге жаз!</span></div>
+    <p class="hint2">Dergideki mavi daktilo harflerini sırayla topla, sözün ilk kısmını yaz. Devamı: "…, ulaşamasan da göğe yükselirsin!"</p>
+    ${kimlik()}<label>Söz · Сөз<input name="cevap" maxlength="80" required autocomplete="off" autocapitalize="characters"></label>
+    <button type="submit">Gönder · Жөнөт</button><div class="st"></div></form>`).firstChild;
   const st = f.querySelector('.st');
-  if (hafiza.al('avi')) durum(st, 'Cevabını daha önce gönderdin. Çekilişte bol şans!', true);
+  if (hafiza.al('avi')) durum(st, 'Cevabını daha önce gönderdin. Bol şans! · Ийгилик!', true);
   f.onsubmit = async e => { e.preventDefault(); const btn = f.querySelector('button'); btn.disabled = true; durum(st, 'Gönderiliyor…');
     const r = await gonder({ tur: 'avi', ad: f.ad.value, sinif: f.sinif.value, cevap: f.cevap.value });
     btn.disabled = false;
-    if (r && r.ok) { hafiza.yaz('avi', '1'); durum(st, 'Cevabın alındı! Çekilişte bol şans! · Ийгилик!', true); f.reset(); }
+    if (r && r.ok) { hafiza.yaz('avi', '1'); durum(st, 'Cevabın bize ulaştı! Sürpriz ödül için bol şans! · Ийгилик!', true); f.reset(); }
     else durum(st, 'Bir sorun oldu, tekrar dene. (' + (r && r.hata ? r.hata : window.BULUT_HATA || '?') + ')', false); };
   el.appendChild(f);
 }
@@ -233,12 +237,13 @@ function videolar(el) {
 window.BULUT_EXTRA = {
   12: () => { location.href = 'lezzet.html'; },
   13: () => { location.href = 'lezzet.html'; },
+  4: hikaye,
   8: omu,
   5: kulak,
   17: (el) => { videolar(el); cevap(el, 17); },
   18: (el) => { cevap(el, 18); rota(el); },
   9: soz,
   15: (el) => fotoForm(el, ['Gökyüzü', 'Bulut', 'Kış'], 'Gökyüzünün ya da bir bulutun fotoğrafını çek, bize gönder! <span>Асмандын же булуттун сүрөтүн жөнөт!</span>'),
-  20: (el) => { avi(el); rota(el); fotoForm(el, ['Kış', 'Gökyüzü / bulut', 'Bulutta hayvan'], 'Gökyüzünü bize gönder! <span>Асманды бизге жөнөт!</span>'); },
+  20: (el) => { avi(el); fotoForm(el, ['Kış', 'Gökyüzü', 'Bulut'], 'Kış ve gökyüzü fotoğrafını gönder: en güzelleri 2. sayıda! <span>Кыштын жана асмандын сүрөтүн жөнөт!</span>'); },
   19: bilgi,
 };
